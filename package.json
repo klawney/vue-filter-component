@@ -1,0 +1,19 @@
+{
+  "name": "vue-filter-component",
+  "version": "1.0.0",
+  "description": "cc",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/klawney/vue-filter-component.git"
+  },
+  "author": "Claudinei da Costa / Klawney",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/klawney/vue-filter-component/issues"
+  },
+  "homepage": "https://github.com/klawney/vue-filter-component#readme"
+}
