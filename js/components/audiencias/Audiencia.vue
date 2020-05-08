@@ -1,19 +1,25 @@
 <template>
-<div>
+  <div>
     <!-- {{filtrosAplicados}} -->
-    <div v-show="false">
-      {{audienciasFiltradas}}
-    </div>
-    <select-filtro :opcoes="opcoesfiltroAuds" @aplicaFiltro="setFiltrosAud" ></select-filtro>
     <!-- <req-logistica></req-logistica> -->
-   <!-- :pessoa="TestemunhaPreposto"  -->
+    <!-- :pessoa="TestemunhaPreposto"  -->
     <audiencia-modal :audiencia="Audiencia" :recebendo="enviando" ref="Audmodal"></audiencia-modal>
-    <prep-test-aud-modal v-if="tipoPTModal" :audiencia="Audiencia" :tipoPessoa="tipoPTModal" ref="PTmodal"></prep-test-aud-modal>
+    <prep-test-aud-modal
+      v-if="tipoPTModal"
+      :audiencia="Audiencia"
+      :tipoPessoa="tipoPTModal"
+      ref="PTmodal"
+    ></prep-test-aud-modal>
     <!-- ------------------------------------- -->
     <div class="panel panel-default">
       <div class="panel-heading">
         <div class="row">
-          <div class="col-md-4 panel-title">Audiências</div>
+          <div class="col-md-4 panel-title">
+            <h3>
+              <span class="fa fa-university"></span> Audiências
+            </h3>
+          </div>
+
           <div class="col-md-5 col-md-offset-2">
             <div class="input-group">
               <input
@@ -31,6 +37,11 @@
             <button class="pull-right btn btn-primary" @click="novaAudiencia()">
               <i class="glyphicon glyphicon-plus"></i>
             </button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <select-filtro :opcoes="opcoesfiltroAuds" @aplicaFiltro="setFiltrosAud"></select-filtro>
           </div>
         </div>
       </div>
@@ -81,14 +92,16 @@
                   </td>-->
                   <!-- <td>{{tipoPTModal}}</td> -->
                   <td>
-                    <button class="btn btn-default" @click="tipoPTModal = 'Testemunha';abrePTModal(item);">
-                      Testemunha
-                    </button>
+                    <button
+                      class="btn btn-default"
+                      @click="tipoPTModal = 'Testemunha';abrePTModal(item);"
+                    >Testemunha</button>
                   </td>
                   <td>
-                    <button class="btn btn-default" @click="tipoPTModal = 'Preposto';abrePTModal(item);">
-                      Preposto
-                    </button>
+                    <button
+                      class="btn btn-default"
+                      @click="tipoPTModal = 'Preposto';abrePTModal(item);"
+                    >Preposto</button>
                   </td>
                   <td>
                     <!-- <span class="glyphicon glyphicon-trash text-danger"></span> -->
@@ -110,15 +123,13 @@
 
 <script>
 import PrepTestAudModal from "./PrepTestAudModal";
-import filtraAudienciasMixin from "../../mixins/filtraAudienciaMixin"
+import filtraAudienciasMixin from "../../mixins/filtraAudienciaMixin";
 
 export default {
-  mixins:[
-    filtraAudienciasMixin
-  ],
+  mixins: [filtraAudienciasMixin],
   components: {
     ReqLogistica: require("../shared/ReqLogistica"),
-        SelectFiltro: require("../shared/SelectFiltro"),
+    SelectFiltro: require("../shared/SelectFiltro"),
 
     PrepTestAudModal: PrepTestAudModal
   },
@@ -142,9 +153,7 @@ export default {
         //_.filter(this.$store.state.audiencia.audiencias, aud => {
         _.filter(this.audienciasFiltradas, aud => {
           return (
-            aud.processo.nu_processo
-              .toString()
-              .includes(this.criterioBusca) ||
+            aud.processo.nu_processo.toString().includes(this.criterioBusca) ||
             (aud.processo.Expediente &&
               aud.processo.Expediente.includes(this.criterioBusca)) ||
             Vue.moment(aud.dt_hr_audiencia)
@@ -164,25 +173,26 @@ export default {
     },
     Audiencia() {
       return this.$store.state.audiencia.audiencia;
-    },
+    }
     // TestemunhaPreposto(){
-    //   return this.tipoPTModal == 'Preposto' ? this.$store.state.preposto.preposto :this.$store.state.testemunha.testemunha 
+    //   return this.tipoPTModal == 'Preposto' ? this.$store.state.preposto.preposto :this.$store.state.testemunha.testemunha
     // }
   },
   methods: {
-    abrePTModal(objAudiencia){  
-      this.$store.dispatch("audiencia/getAudiencia", objAudiencia.id)
-        .then(()=>{
+    abrePTModal(objAudiencia) {
+      this.$store
+        .dispatch("audiencia/getAudiencia", objAudiencia.id)
+        .then(() => {
           //this.$store.dispatch("testemunha/getTestemunhaAud", objAudiencia)
-          //this.$store.dispatch("preposto/getPrepostoAud", objAudiencia)          
-          this.$refs.PTmodal.showModal()
-        })
-      
-     // console.log(objAudiencia);
-     // this.tipoPessoa
+          //this.$store.dispatch("preposto/getPrepostoAud", objAudiencia)
+          this.$refs.PTmodal.showModal();
+        });
+
+      // console.log(objAudiencia);
+      // this.tipoPessoa
       // let acao = 'get'+this.tipoPessoa+'Aud'   // getPrepostoAud // getTestemunhaAud
       //   let obj = this.$store.state.audiencia.audiencia
-      //   this.$store.dispatch("audiencia/"+acao,obj).then(()=>{           
+      //   this.$store.dispatch("audiencia/"+acao,obj).then(()=>{
       // })
     },
     ordenaAudiencia(col) {
@@ -215,6 +225,7 @@ export default {
     // $(this.$refs.Audmodal).on("hidden.bs.Audmodal", ()=>{console.log("Feccdd"); })
     this.$store.dispatch("audiencia/getAudiencias");
     //this.$store.dispatch("audiencia/getAudiencia",{id:5});
+    this.$store.dispatch("unidade/buscaUnidades", { str: "a" })
     this.$store.dispatch("audiencia/getTipos");
     this.$store.dispatch("advogado/getAdvogados");
   }

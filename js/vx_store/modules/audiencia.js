@@ -46,8 +46,33 @@ export default {
             state.audiencias.push(aud)
         },
         setFiltros(state, filtros) {
+
+            //let camposValidos = _.keys(state.audiencias[0])
+            let camposValidos =
+                _.map(state.audiencias[0], (o, k) => {
+                    if (_.isObject(o)) {
+                        return _.keys(_.mapKeys(o, (i, ki) => k + '.' + ki))
+                    }
+                    return k
+                })
+            camposValidos = _.concat(
+                _.filter(camposValidos, (f) => _.isArray(f))[0],
+                _.filter(camposValidos, (f) => !_.isArray(f))
+            )
+            //let camposValidos = _.keys(state.audiencias[0])
+            // console.log(camposValidos);
+
+            _.remove(filtros, (item) => {
+                // cpFiltro = item[0]
+                //console.log(item);
+
+                let teste = !_.includes(camposValidos, item[0])
+                teste ? console.log(item[0] + " não foi encontrado") : false
+                return teste
+            })
             state.filtros = filtros
         }
+
         /*,
         setProcessoAudiencia(state,proc){
             console.log(state.audiencia);
@@ -187,21 +212,31 @@ export default {
     },
     getters: {
         getAudienciasFiltradas(state) {
-            if(!state.filtros.length) return state.audiencias
-            let camposValidos = _.keys(state.audiencias[0])
-            //console.log(_.includes(camposValidos,'tipo'));
-            
+            if (!state.filtros.length) return state.audiencias
+
             //let MsgErro
+            
             return state.audiencias.filter((aud) => {
-                return _.reduce(state.filtros, (testaFiltro, item) => {
-                    if (!_.includes(camposValidos,item[0])) {
-                        console.log(item[0] + ' Campo Inválido' )     
-                    }
+                return _.reduce(state.filtros, (testaFiltro, item, k, org) => {
+                    console.log(testaFiltro);
+                    return true
+                    /// ***** parou aqui ***** testar pq nao esta filtrando direito
                     let cpFiltro = item[0]
                     let vlrFiltro = item[1]
-                    let vlrCpAud = aud[cpFiltro]
-
-
+                    let x
+                    if (cpFiltro.includes('.')) {
+                        x = cpFiltro.split('.')
+                    }
+                    let vlrCpAud = x ? aud[x[0]][x[1]] : aud[cpFiltro]
+                    switch (true) {
+                        case _.isString(vlrFiltro): {
+                            vlrCpAud = vlrCpAud? vlrCpAud.toLowerCase():undefined
+                            vlrFiltro = vlrFiltro.toLowerCase()
+                        }
+                    }
+                    // console.log(vlrCpAud == vlrFiltro);
+                    // console.log(vlrCpAud);
+                    // console.log(vlrFiltro);
                     if (vlrCpAud == vlrFiltro) {
                         testaFiltro = true
                     } else if (_.isArray(vlrFiltro)) {
@@ -219,18 +254,24 @@ export default {
                                 ent.prev = ent.prev ? ent.prev : vli
                             }
                             return ent
-                        }, {teste: false, prev: null})
+                        }, {
+                            teste: false,
+                            prev: null
+                        })
                         // console.log(testaVlrArray);
                         testaFiltro = testaVlrArray.teste && testaFiltro
                     }
+                    //console.log(vlrCpAud);
+                    //console.log(vlrFiltro);
+                    
                     return testaFiltro
-                },false);
+                }, false);
             })
         }
         //----------------------
-    // ------ fim getters    
+        // ------ fim getters    
     }
-//-------- Fim Store Audiencia    
+    //-------- Fim Store Audiencia    
 }
 
 
