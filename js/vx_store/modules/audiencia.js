@@ -18,9 +18,13 @@ export default {
             state.audiencias = auds
         },
 
-        setAudiencia(state, aud) {
-            let tp = state.tipos.filter((t) => t.id == aud.tipo_audiencia)
+        setAudiencia(state, aud) {         
+            
+            let tp = state.tipos.filter((t) =>{
+                return t.id == aud.tipo_audiencia || t == aud.tipo_audiencia
+            })
             aud.tipo_audiencia = tp ? tp[0] : null
+            
             aud.dt_hr_audiencia = Vue.moment(aud.dt_hr_audiencia).toDate() // new Date(aud.dt_hr_audiencia)
             state.audiencia = aud
             // console.log(state.audiencia);
@@ -107,15 +111,21 @@ export default {
         },
         gravarAudiencia(context, aud) {
             if (aud) {
+                //console.log(aud);
+                
                 let dados = {
                     "id": aud.id ? aud.id : null,
                     "dt_hr_audiencia": Vue.moment(aud.dt_hr_audiencia).format('YYYY-MM-DD HH:mm'),
-                    "tipo_audiencia": aud.tipo_audiencia.id ? aud.tipo_audiencia.id : aud.tipo_audiencia,
+                    "tipo_audiencia": aud.tipo_audiencia.id ? aud.tipo_audiencia.id : null,
                     "processo_id": aud.processo_id,
                     "bit_terc_ato": aud.bit_terc_ato,
-                    "advogado_redist_id": aud.advogado_redist_id ? aud.advogado_redist_id.id : null,
+                    "advogado_redist_id": aud.advogado_redist_id ? aud.advogado_redist_id : null,
+                    "adv_aud_id": aud.adv_aud_id ? aud.adv_aud_id : null,
+                    "bit_adv_redis" : aud.bit_adv_redis,
+                    "credenciado_id" : aud.credenciado_id ? aud.credenciado_id : null,
                     "obs": aud.obs
                 }
+                console.log(dados);
                 //-------- remover --------
                 dados.tipo = aud.tipo_audiencia.descricao
                 dados.created_at = aud.created_at
@@ -125,7 +135,6 @@ export default {
                 return axios.post('/api/audiencia', dados)
                     .then((response) => {
                         context.commit('setAudiencia', response.data)
-                        //  console.log(response.data);
                         let novo = dados.id == null
                         if (novo) {
                             context.commit('addAudienciasList', response.data)
@@ -154,17 +163,13 @@ export default {
                         // this.errored = true
                     })
             } else if (!Array.isArray(aud)) {
-                //console.log(aud.id);
                 context.commit('setAudiencia', aud)
             }
         },
 
         solicitaTestemunha(context, dados) {
-            console.log(dados);
-            /*
-            let test = null
-
-            return axios.post('/api/testemunha/solicita',test)
+            //console.log(dados);
+            return axios.post('/api/testemunha/solicita',dados)
             .then((response)=>{
                 console.log(response);                
                 //context.commit('addPrepostoTestemunha', response.data)
@@ -172,11 +177,9 @@ export default {
             .catch((error) => {
                 console.log(error)
             })
-            */
         },
         convocaTestemunha(context, dados) {
-            let test = null
-            return axios.post('/api/testemunha', test)
+            return axios.post('/api/testemunha', dados)
                 .then((response) => {
                     console.log(response);
                     //context.commit('addPrepostoTestemunha', response.data)
@@ -186,8 +189,7 @@ export default {
                 })
         },
         solicitaPreposto(context, dados) {
-            let prep = null
-            return axios.post('/api/preposto/solicita', prep)
+            return axios.post('/api/preposto/solicita', dados)
                 .then(response => {
                     console.log(response);
                     //context.commit('addPrepostoTestemunha', response.data)
@@ -197,48 +199,43 @@ export default {
                 })
         },
         convocaPreposto(context, dados) {
-            let prep = null
-            return axios.post('/api/preposto', prep)
-            .then(response => {
-                console.log(response);
-                //context.commit('addPrepostoTestemunha', response.data)
-            })
-            .catch(error => {
-                console.log(error)
-            })
+            return axios.post('/api/preposto', dados)
+                .then(response => {
+                    console.log(response);
+                    //context.commit('addPrepostoTestemunha', response.data)
+                })
+                .catch(error => {
+                    console.log(error)
+                })
         }
-        
+
         //--------------- fim actions
     },
     getters: {
         getAudienciasFiltradas(state) {
             if (!state.filtros.length) return state.audiencias
-
-            //let MsgErro
-            
             return state.audiencias.filter((aud) => {
-                return _.reduce(state.filtros, (testaFiltro, item, k, org) => {
-                    console.log(testaFiltro);
-                    return true
-                    /// ***** parou aqui ***** testar pq nao esta filtrando direito
+                //let ObjAcumFiltros = {}
+                let ObjAcumFiltros = _.reduce(state.filtros, (ObjAcumFiltros, item, k, org) => {
+                    let testeItem = false
                     let cpFiltro = item[0]
                     let vlrFiltro = item[1]
                     let x
                     if (cpFiltro.includes('.')) {
                         x = cpFiltro.split('.')
                     }
-                    let vlrCpAud = x ? aud[x[0]][x[1]] : aud[cpFiltro]
+                    let vlrCpAud = x ? aud[x[0]][x[1]] : aud[cpFiltro]                   
                     switch (true) {
-                        case _.isString(vlrFiltro): {
-                            vlrCpAud = vlrCpAud? vlrCpAud.toLowerCase():undefined
+                        case _.isString(vlrFiltro): {                           
+                            vlrCpAud = vlrCpAud ? 
+                                _.isString(vlrCpAud)?vlrCpAud.toLowerCase():vlrCpAud
+                                : undefined
                             vlrFiltro = vlrFiltro.toLowerCase()
                         }
                     }
-                    // console.log(vlrCpAud == vlrFiltro);
-                    // console.log(vlrCpAud);
-                    // console.log(vlrFiltro);
                     if (vlrCpAud == vlrFiltro) {
-                        testaFiltro = true
+                        testeItem = true
+                        //return ObjAcumFiltros.testaFiltro && true 
                     } else if (_.isArray(vlrFiltro)) {
                         let testaVlrArray = vlrFiltro.reduce((ent, vli) => {
                             if (_.isDate(vli)) {
@@ -259,13 +256,17 @@ export default {
                             prev: null
                         })
                         // console.log(testaVlrArray);
-                        testaFiltro = testaVlrArray.teste && testaFiltro
+                        testeItem = testaVlrArray.teste
                     }
-                    //console.log(vlrCpAud);
-                    //console.log(vlrFiltro);
-                    
-                    return testaFiltro
-                }, false);
+                    //--- Processa o para o campo do filtro
+                    if (ObjAcumFiltros[cpFiltro]) {
+                        ObjAcumFiltros[cpFiltro] = testeItem || ObjAcumFiltros[cpFiltro]
+                    } else {
+                        ObjAcumFiltros[cpFiltro] = testeItem
+                    }
+                    return ObjAcumFiltros
+                }, {}) // descer esta linha    
+                return _.reduce(ObjAcumFiltros, (bitAcum, bitF) =>bitF && bitAcum, true)
             })
         }
         //----------------------
