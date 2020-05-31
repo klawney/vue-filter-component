@@ -55,21 +55,24 @@
                 /> Todos
               </fieldset>
               <fieldset class="col-md-12" v-show="!todos[op.campo]">
-                {{op.config?op.config.label:"sss"}}
                 <v-select
                   v-if="op.tipo.startsWith('select')"
                   :multiple="op.tipo.endsWith('multiplo')"
                   :closeOnSelect="!op.tipo.endsWith('multiplo')"
                   :clearSearchOnSelect="op.tipo.endsWith('multiplo')"
                   :selectable="option => naoSelecionados(option,preFiltros[op.campo])"
-                  :searchable="op.valores.length >= 20"
                   :options="op.valores"
                   :clearable="false"
                   v-model="preFiltros[op.campo]"
                   :code="op.config?op.config.code:undefined"
                   :label="op.config?op.config.label:undefined"
                   :reduce ="op.config?  obj => obj[op.config.code] :undefined"
+                  @search=op.config.busca
                 ></v-select>
+                  <!-- :searchable="op.valores.length >= 20" -->
+                  <!-- @search="buscaUnidades" -->
+                  <!-- @search="op.config?op.config.busca():busca" -->
+                  <!-- @search="busca(op.config?op.config.busca:undefined)" -->
                   <!--:label="op.config.label" :'nome', code:'adm_unid'}" -->
     
                 <vue2datepicker
@@ -142,8 +145,9 @@
 
 <script>
 import datePickerConfig from "../../mixins/datePickerConfigMixins";
+import buscasMixins from "../../mixins/buscasMixins"
 export default {
-  mixins: [datePickerConfig],
+  mixins: [datePickerConfig,buscasMixins],
   props: ["opcoes"],
   data() {
     return {
@@ -172,7 +176,8 @@ export default {
       let processados = _.flatten(
         _.map(this.preFiltros, (arr, key) => {
           //console.log(arr);
-          
+          //console.log(KEY);
+          //Criar filtro para itens com relacionamento
           if (!_.isArray(arr)) return [[key, arr]]; //_.fromPairs([[key, arr]]);
           let result = _.reduce(
             arr,
@@ -252,53 +257,7 @@ export default {
   },
   //--------------------------------------- filters de campo formatacao ----------------------
   filters: {
-    textoObjFiltrados: function(item, opcoes) {
-      if (!item) return "";
-      let op = _.filter(opcoes, op => {
-        return op.campo == item[0];
-      });
-      let tag = "";
-      let valor = "";
-      let formato = "";
-      if (op.length) {
-        tag = op[0].tag;
-        //console.log(op[0].tipo)
-        switch (op[0].tipo) {
-          case "data":
-            formato = "DD/MMM/YYYY";
-            break;
-          case "periodo":
-            formato = "DD/MMM/YYYY";
-            break;
-          case "data-horas":
-            formato = "DD/MMM/YYYY HH:mm";
-            break;
-          case "periodo-horas":
-            formato = "DD/MMM/YYYY HH:mm";
-            break;
-        }
-      }
-
-      if (_.isArray(item[1])) {
-        valor = _.reduce(
-          item[1],
-          (ent, it) => {
-            it = _.isDate(it) ? Vue.moment(it).format(formato) : it;
-            let pre = ent == "" ? "" : " - ";
-            return (ent += pre + it);
-          },
-          ""
-        );
-      } else {
-        valor = item[1];
-        valor = _.isDate(valor) ? Vue.moment(valor).format(formato) : valor;
-        valor = _.isNumber(valor) ? valor.toLocaleString("pt-BR") : valor;
-      }
-      //console.log();
-
-      return tag + " : " + valor;
-      //return value.charAt(0).toUpperCase() + value.slice(1)
-    }
+    textoObjFiltrados: Vue.helpers.getTagValorText
   }
 };
 </script>
